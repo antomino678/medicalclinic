@@ -12,8 +12,9 @@ import java.util.concurrent.ConcurrentHashMap;
 public class PatientRepository {
     private final Map<String, Patient> patients = new ConcurrentHashMap<>();
 
-    public void save(Patient patient) {
+    public Patient save(Patient patient) {
         patients.put(patient.getEmail(), patient);
+        return patient;
     }
 
     public Optional<Patient> findByEmail(String email) {

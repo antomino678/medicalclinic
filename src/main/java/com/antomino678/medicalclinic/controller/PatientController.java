@@ -4,19 +4,17 @@ import com.antomino678.medicalclinic.dto.CreatePatientDto;
 import com.antomino678.medicalclinic.dto.PatientDto;
 import com.antomino678.medicalclinic.dto.UpdatePatientDto;
 import com.antomino678.medicalclinic.service.PatientService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/patients")
+@RequestMapping("/patients")
+@RequiredArgsConstructor
 public class PatientController {
     private final PatientService patientService;
-
-    public PatientController(PatientService patientService) {
-        this.patientService = patientService;
-    }
 
     @GetMapping
     public List<PatientDto> getPatients() {

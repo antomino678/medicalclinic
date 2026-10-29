@@ -5,29 +5,29 @@ import com.antomino678.medicalclinic.dto.PatientDto;
 import com.antomino678.medicalclinic.dto.UpdatePatientDto;
 import com.antomino678.medicalclinic.exception.PatientAlreadyExistsException;
 import com.antomino678.medicalclinic.exception.PatientNotFoundException;
+import com.antomino678.medicalclinic.mapper.PatientMapper;
 import com.antomino678.medicalclinic.model.Patient;
 import com.antomino678.medicalclinic.repository.PatientRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class PatientService {
     private final PatientRepository patientRepository;
-
-    public PatientService(PatientRepository patientRepository) {
-        this.patientRepository = patientRepository;
-    }
+    private final PatientMapper patientMapper;
 
     public List<PatientDto> getAllPatients() {
         return patientRepository.findAll().stream()
-                .map(this::toDto)
+                .map(patientMapper::toDto)
                 .toList();
     }
 
     public PatientDto getPatientByEmail(String email) {
         return patientRepository.findByEmail(email)
-                .map(this::toDto)
+                .map(patientMapper::toDto)
                 .orElseThrow(() -> new PatientNotFoundException(email));
     }
 
@@ -35,9 +35,8 @@ public class PatientService {
         if (patientRepository.findByEmail(createPatientDto.email()).isPresent()) {
             throw new PatientAlreadyExistsException(createPatientDto.email());
         }
-        Patient patient = toPatient(createPatientDto);
-        patientRepository.save(patient);
-        return toDto(patient);
+        Patient patient = patientMapper.toPatient(createPatientDto);
+        return patientMapper.toDto(patientRepository.save(patient));
     }
 
     public void deletePatientByEmail(String email) {
@@ -50,39 +49,7 @@ public class PatientService {
     public PatientDto updatePatientByEmail(String email, UpdatePatientDto updatePatientDto) {
         Patient patient = patientRepository.findByEmail(email)
                 .orElseThrow(() -> new PatientNotFoundException(email));
-
-        patient.setPassword(updatePatientDto.password());
-        patient.setIdCardNo(updatePatientDto.idCardNo());
-        patient.setFirstName(updatePatientDto.firstName());
-        patient.setLastName(updatePatientDto.lastName());
-        patient.setPhoneNumber(updatePatientDto.phoneNumber());
-        patient.setBirthday(updatePatientDto.birthday());
-
-        patientRepository.save(patient);
-        return toDto(patient);
+        patient.update(patientMapper.toPatient(email, updatePatientDto));
+        return patientMapper.toDto(patientRepository.save(patient));
     }
-
-    private PatientDto toDto(Patient patient) {
-        return new PatientDto(
-                patient.getEmail(),
-                patient.getIdCardNo(),
-                patient.getFirstName(),
-                patient.getLastName(),
-                patient.getPhoneNumber(),
-                patient.getBirthday()
-        );
-    }
-
-    private Patient toPatient(CreatePatientDto createPatientDto) {
-        return new Patient(
-                createPatientDto.email(),
-                createPatientDto.password(),
-                createPatientDto.idCardNo(),
-                createPatientDto.firstName(),
-                createPatientDto.lastName(),
-                createPatientDto.phoneNumber(),
-                createPatientDto.birthday()
-        );
-    }
-
 }
