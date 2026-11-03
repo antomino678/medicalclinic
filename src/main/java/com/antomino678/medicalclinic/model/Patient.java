@@ -17,11 +17,13 @@ public class Patient {
     private LocalDate birthday;
 
     public void update(Patient newData) {
-        this.password = newData.getPassword();
-        this.idCardNo = newData.getIdCardNo();
         this.firstName = newData.getFirstName();
         this.lastName = newData.getLastName();
         this.phoneNumber = newData.getPhoneNumber();
         this.birthday = newData.getBirthday();
+    }
+
+    public void changePassword(String password) {
+        this.password = password;
     }
 }

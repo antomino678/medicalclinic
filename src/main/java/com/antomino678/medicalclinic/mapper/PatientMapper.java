@@ -19,9 +19,9 @@ public class PatientMapper {
         );
     }
 
-    public Patient toPatient(CreatePatientDto createPatientDto) {
+    public Patient toPatient(String email, CreatePatientDto createPatientDto) {
         return new Patient(
-                createPatientDto.email(),
+                email,
                 createPatientDto.password(),
                 createPatientDto.idCardNo(),
                 createPatientDto.firstName(),
@@ -34,8 +34,8 @@ public class PatientMapper {
     public Patient toPatient(String email, UpdatePatientDto updatePatientDto) {
         return new Patient(
                 email,
-                updatePatientDto.password(),
-                updatePatientDto.idCardNo(),
+                null,
+                null,
                 updatePatientDto.firstName(),
                 updatePatientDto.lastName(),
                 updatePatientDto.phoneNumber(),
