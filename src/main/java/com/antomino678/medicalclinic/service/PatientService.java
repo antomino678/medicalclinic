@@ -55,7 +55,7 @@ public class PatientService {
         String email = EmailNormalizer.normalize(rawEmail);
         Patient patient = patientRepository.findByEmail(email)
                 .orElseThrow(() -> new PatientNotFoundException(email));
-        patient.update(patientMapper.toPatient(email, updatePatientDto));
+        patient.update(patientMapper.toPatient(updatePatientDto));
         return patientMapper.toDto(patientRepository.save(patient));
     }
 
