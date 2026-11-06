@@ -1,5 +1,6 @@
 package com.antomino678.medicalclinic.controller;
 
+import com.antomino678.medicalclinic.dto.ChangePasswordDto;
 import com.antomino678.medicalclinic.dto.CreatePatientDto;
 import com.antomino678.medicalclinic.dto.PatientDto;
 import com.antomino678.medicalclinic.dto.UpdatePatientDto;
@@ -42,4 +43,11 @@ public class PatientController {
     public PatientDto updatePatient(@PathVariable String email, @RequestBody UpdatePatientDto updatePatientDto) {
         return patientService.updatePatientByEmail(email, updatePatientDto);
     }
+
+    @PatchMapping("/{email}/password")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void changePassword(@PathVariable String email, @RequestBody ChangePasswordDto changePasswordDto) {
+        patientService.changePassword(email, changePasswordDto);
+    }
+
 }

@@ -4,42 +4,18 @@ import com.antomino678.medicalclinic.dto.CreatePatientDto;
 import com.antomino678.medicalclinic.dto.PatientDto;
 import com.antomino678.medicalclinic.dto.UpdatePatientDto;
 import com.antomino678.medicalclinic.model.Patient;
-import org.springframework.stereotype.Component;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
-@Component
-public class PatientMapper {
-    public PatientDto toDto(Patient patient) {
-        return new PatientDto(
-                patient.getEmail(),
-                patient.getIdCardNo(),
-                patient.getFirstName(),
-                patient.getLastName(),
-                patient.getPhoneNumber(),
-                patient.getBirthday()
-        );
-    }
+@Mapper(componentModel = "spring")
+public interface PatientMapper {
+    PatientDto toDto(Patient patient);
 
-    public Patient toPatient(CreatePatientDto createPatientDto) {
-        return new Patient(
-                createPatientDto.email(),
-                createPatientDto.password(),
-                createPatientDto.idCardNo(),
-                createPatientDto.firstName(),
-                createPatientDto.lastName(),
-                createPatientDto.phoneNumber(),
-                createPatientDto.birthday()
-        );
-    }
+    @Mapping(source = "email", target = "email")
+    Patient toPatient(String email, CreatePatientDto createPatientDto);
 
-    public Patient toPatient(String email, UpdatePatientDto updatePatientDto) {
-        return new Patient(
-                email,
-                updatePatientDto.password(),
-                updatePatientDto.idCardNo(),
-                updatePatientDto.firstName(),
-                updatePatientDto.lastName(),
-                updatePatientDto.phoneNumber(),
-                updatePatientDto.birthday()
-        );
-    }
+    @Mapping(target = "email", ignore = true)
+    @Mapping(target = "password", ignore = true)
+    @Mapping(target = "idCardNo", ignore = true)
+    Patient toPatient(UpdatePatientDto updatePatientDto);
 }
