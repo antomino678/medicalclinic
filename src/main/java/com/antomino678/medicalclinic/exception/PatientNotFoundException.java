@@ -1,11 +1,9 @@
 package com.antomino678.medicalclinic.exception;
 
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
 
-@ResponseStatus(HttpStatus.NOT_FOUND)
-public class PatientNotFoundException extends RuntimeException {
+public class PatientNotFoundException extends MedicalClinicException {
     public PatientNotFoundException(String email) {
-        super("Patient with email " + email + " not found");
+        super("Patient with email " + email + " not found", HttpStatus.NOT_FOUND);
     }
 }

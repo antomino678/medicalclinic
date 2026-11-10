@@ -12,6 +12,7 @@ import com.antomino678.medicalclinic.repository.PatientRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
 import java.time.LocalDate;
@@ -195,7 +196,7 @@ public class PatientServiceTest {
     }
 
     @Test
-    void addPatient_EmailWithUpperCaseAndSpaces_EmailNormalizedBeforeLookup() {
+    void addPatient_EmailWithUpperCaseAndSpaces_EmailNormalizedBeforeLookupAndSave() {
         // given
         CreatePatientDto createPatientDto = new CreatePatientDto(
                 "  TEST@TEST.PL",
@@ -206,12 +207,16 @@ public class PatientServiceTest {
                 "900502502",
                 LocalDate.of(2005, 2, 15));
         when(patientRepository.findByEmail("test@test.pl")).thenReturn(Optional.empty());
+        ArgumentCaptor<Patient> patientCaptor = ArgumentCaptor.forClass(Patient.class);
 
         // when
         patientService.addPatient(createPatientDto);
 
         // then
         verify(patientRepository).findByEmail("test@test.pl");
+
+        verify(patientRepository).save(patientCaptor.capture());
+        assertEquals("test@test.pl", patientCaptor.getValue().getEmail());
     }
 
     @Test
