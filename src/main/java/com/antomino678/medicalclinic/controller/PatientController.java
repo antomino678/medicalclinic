@@ -44,10 +44,4 @@ public class PatientController {
         return patientService.updatePatientByEmail(email, updatePatientDto);
     }
 
-    @PatchMapping("/{email}/password")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void changePassword(@PathVariable String email, @RequestBody ChangePasswordDto changePasswordDto) {
-        patientService.changePassword(email, changePasswordDto);
-    }
-
 }
