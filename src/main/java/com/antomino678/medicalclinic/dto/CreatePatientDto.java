@@ -3,8 +3,7 @@ package com.antomino678.medicalclinic.dto;
 import java.time.LocalDate;
 
 public record CreatePatientDto(
-        String email,
-        String password,
+        Long userId,
         String idCardNo,
         String firstName,
         String lastName,
