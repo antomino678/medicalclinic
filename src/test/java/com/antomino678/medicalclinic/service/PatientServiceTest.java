@@ -8,6 +8,7 @@ import com.antomino678.medicalclinic.exception.PatientAlreadyExistsException;
 import com.antomino678.medicalclinic.exception.PatientNotFoundException;
 import com.antomino678.medicalclinic.mapper.PatientMapper;
 import com.antomino678.medicalclinic.model.Patient;
+import com.antomino678.medicalclinic.model.User;
 import com.antomino678.medicalclinic.repository.PatientRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -38,23 +39,21 @@ public class PatientServiceTest {
     @Test
     void getAllPatients_PatientsExist_PatientsReturned() {
         // given
-        List<Patient> patients = List.of(
-                new Patient(
-                        "email@test.pl",
-                        "pass",
+        List<Patient> patients = List.of(new Patient(
+                        null,
                         "123123",
                         "jan",
                         "kowalski",
                         "502502502",
-                        LocalDate.of(2000, 1, 25)),
-                new Patient(
-                        "test@test.pl",
-                        "pass123",
+                        LocalDate.of(2000, 1, 25),
+                        new User(null, "email@test.pl", "pass123")),
+                new Patient(null,
                         "333333",
                         "krzysztof",
                         "kowalski",
                         "900502502",
-                        LocalDate.of(2005, 2, 15)));
+                        LocalDate.of(2005, 2, 15),
+                        new User(null, "test@test.pl", "pass")));
         when(patientRepository.findAll()).thenReturn(patients);
 
         // when
@@ -94,15 +93,14 @@ public class PatientServiceTest {
     void getPatientByEmail_PatientExists_PatientReturned() {
         // given
         Optional<Patient> patient = Optional.of(
-                new Patient(
-                        "test@test.pl",
-                        "pass123",
+                new Patient(null,
                         "333333",
                         "krzysztof",
                         "kowalski",
                         "900502502",
-                        LocalDate.of(2005, 2, 15)));
-        when(patientRepository.findByEmail("test@test.pl")).thenReturn(patient);
+                        LocalDate.of(2005, 2, 15),
+                        new User(null, "test@test.pl", "pass123")));
+        when(patientRepository.findByUserEmail("test@test.pl")).thenReturn(patient);
 
         // when
         PatientDto patientDto = patientService.getPatientByEmail("test@test.pl");
@@ -121,7 +119,7 @@ public class PatientServiceTest {
     @Test
     void getPatientByEmail_PatientNotExists_ThrowsPatientNotFoundException() {
         // given
-        when(patientRepository.findByEmail("test@test.pl")).thenReturn(Optional.empty());
+        when(patientRepository.findByUserEmail("test@test.pl")).thenReturn(Optional.empty());
 
         // when
         PatientNotFoundException exception = assertThrows(PatientNotFoundException.class,
@@ -135,15 +133,14 @@ public class PatientServiceTest {
     void getPatientByEmail_EmailWithUpperCaseAndSpaces_EmailNormalizedAndPatientReturned() {
         // given
         Optional<Patient> patient = Optional.of(
-                new Patient(
-                        "test@test.pl",
-                        "pass123",
+                new Patient(null,
                         "333333",
                         "krzysztof",
                         "kowalski",
                         "900502502",
-                        LocalDate.of(2005, 2, 15)));
-        when(patientRepository.findByEmail("test@test.pl")).thenReturn(patient);
+                        LocalDate.of(2005, 2, 15),
+                        new User(null, "test@test.pl", "pass123")));
+        when(patientRepository.findByUserEmail("test@test.pl")).thenReturn(patient);
 
         // when
         PatientDto patientDto = patientService.getPatientByEmail("   TEST@TEST.PL");
@@ -170,15 +167,14 @@ public class PatientServiceTest {
                 "kowalski",
                 "900502502",
                 LocalDate.of(2005, 2, 15));
-        Patient savedPatient = new Patient(
-                "test@test.pl",
-                "pass123",
+        Patient savedPatient = new Patient(null,
                 "333333",
                 "krzysztof",
                 "kowalski",
                 "900502502",
-                LocalDate.of(2005, 2, 15));
-        when(patientRepository.findByEmail("test@test.pl")).thenReturn(Optional.empty());
+                LocalDate.of(2005, 2, 15),
+                new User(null, "test@test.pl", "pass123"));
+        when(patientRepository.findByUserEmail("test@test.pl")).thenReturn(Optional.empty());
         when(patientRepository.save(any(Patient.class))).thenReturn(savedPatient);
 
         // when
@@ -206,36 +202,35 @@ public class PatientServiceTest {
                 "kowalski",
                 "900502502",
                 LocalDate.of(2005, 2, 15));
-        when(patientRepository.findByEmail("test@test.pl")).thenReturn(Optional.empty());
+        when(patientRepository.findByUserEmail("test@test.pl")).thenReturn(Optional.empty());
         ArgumentCaptor<Patient> patientCaptor = ArgumentCaptor.forClass(Patient.class);
 
         // when
         patientService.addPatient(createPatientDto);
 
         // then
-        verify(patientRepository).findByEmail("test@test.pl");
+        verify(patientRepository).findByUserEmail("test@test.pl");
 
         verify(patientRepository).save(patientCaptor.capture());
-        assertEquals("test@test.pl", patientCaptor.getValue().getEmail());
+        assertEquals("test@test.pl", patientCaptor.getValue().getUser().getEmail());
     }
 
     @Test
     void updatePatientByEmail_PatientExists_PatientUpdated() {
         // given
-        Patient patient = new Patient(
-                "test@test.pl",
-                "pass123",
+        Patient patient = new Patient(null,
                 "333333",
                 "krzysztof",
-                "kowalski",
-                "900502502",
-                LocalDate.of(2005, 2, 15));
+                "nowak",
+                "111222333",
+                LocalDate.of(1999, 2, 15),
+                new User(null, "test@test.pl", "pass123"));
         UpdatePatientDto updatePatientDto = new UpdatePatientDto(
                 "jan",
                 "nowak",
                 "111222333",
                 LocalDate.of(1999, 5, 5));
-        when(patientRepository.findByEmail("test@test.pl")).thenReturn(Optional.of(patient));
+        when(patientRepository.findByUserEmail("test@test.pl")).thenReturn(Optional.of(patient));
         when(patientRepository.save(patient)).thenReturn(patient);
 
         // when
@@ -255,20 +250,19 @@ public class PatientServiceTest {
     @Test
     void updatePatientByEmail_EmailWithUpperCaseAndSpaces_PatientUpdated() {
         // given
-        Patient patient = new Patient(
-                "test@test.pl",
-                "pass123",
+        Patient patient = new Patient(null,
                 "333333",
                 "krzysztof",
                 "kowalski",
                 "900502502",
-                LocalDate.of(2005, 2, 15));
+                LocalDate.of(2005, 2, 15),
+                new User(null, "test@test.pl", "pass123"));
         UpdatePatientDto updatePatientDto = new UpdatePatientDto(
                 "jan",
                 "nowak",
                 "111222333",
                 LocalDate.of(1999, 5, 5));
-        when(patientRepository.findByEmail("test@test.pl")).thenReturn(Optional.of(patient));
+        when(patientRepository.findByUserEmail("test@test.pl")).thenReturn(Optional.of(patient));
         when(patientRepository.save(patient)).thenReturn(patient);
 
         // when
@@ -288,27 +282,26 @@ public class PatientServiceTest {
     @Test
     void updatePatientByEmail_PatientExists_PasswordNotChanged() {
         // given
-        Patient patient = new Patient(
-                "test@test.pl",
-                "pass123",
+        Patient patient = new Patient(null,
                 "333333",
                 "krzysztof",
                 "kowalski",
                 "900502502",
-                LocalDate.of(2005, 2, 15));
+                LocalDate.of(2005, 2, 15),
+                new User(null, "test@test.pl", "pass123"));
         UpdatePatientDto updatePatientDto = new UpdatePatientDto(
                 "jan",
                 "nowak",
                 "111222333",
                 LocalDate.of(1999, 5, 5));
-        when(patientRepository.findByEmail("test@test.pl")).thenReturn(Optional.of(patient));
+        when(patientRepository.findByUserEmail("test@test.pl")).thenReturn(Optional.of(patient));
         when(patientRepository.save(patient)).thenReturn(patient);
 
         // when
         patientService.updatePatientByEmail("test@test.pl", updatePatientDto);
 
         // then
-        assertEquals("pass123", patient.getPassword());
+        assertEquals("pass123", patient.getUser().getPassword());
     }
 
     @Test
@@ -319,7 +312,7 @@ public class PatientServiceTest {
                 "nowak",
                 "111222333",
                 LocalDate.of(1999, 5, 5));
-        when(patientRepository.findByEmail("test@test.pl")).thenReturn(Optional.empty());
+        when(patientRepository.findByUserEmail("test@test.pl")).thenReturn(Optional.empty());
 
         // when
         PatientNotFoundException exception = assertThrows(PatientNotFoundException.class,
@@ -333,47 +326,45 @@ public class PatientServiceTest {
     @Test
     void deletePatientByEmail_PatientExists_PatientDeleted() {
         // given
-        Patient patient = new Patient(
-                "test@test.pl",
-                "pass123",
+        Patient patient = new Patient(null,
                 "333333",
                 "krzysztof",
                 "kowalski",
                 "900502502",
-                LocalDate.of(2005, 2, 15));
-        when(patientRepository.findByEmail("test@test.pl")).thenReturn(Optional.of(patient));
+                LocalDate.of(2005, 2, 15),
+                new User(null, "test@test.pl", "pass123"));
+        when(patientRepository.findByUserEmail("test@test.pl")).thenReturn(Optional.of(patient));
 
         // when
         patientService.deletePatientByEmail("test@test.pl");
 
         // then
-        verify(patientRepository).deleteByEmail("test@test.pl");
+        verify(patientRepository).deleteByUserEmail("test@test.pl");
     }
 
     @Test
     void deletePatientByEmail_EmailWithUpperCaseAndSpaces_PatientDeleted() {
         // given
-        Patient patient = new Patient(
-                "test@test.pl",
-                "pass123",
+        Patient patient = new Patient(null,
                 "333333",
                 "krzysztof",
                 "kowalski",
                 "900502502",
-                LocalDate.of(2005, 2, 15));
-        when(patientRepository.findByEmail("test@test.pl")).thenReturn(Optional.of(patient));
+                LocalDate.of(2005, 2, 15),
+                new User(null, "test@test.pl", "pass123"));
+        when(patientRepository.findByUserEmail("test@test.pl")).thenReturn(Optional.of(patient));
 
         // when
         patientService.deletePatientByEmail("  TEST@TEST.PL  ");
 
         // then
-        verify(patientRepository).deleteByEmail("test@test.pl");
+        verify(patientRepository).deleteByUserEmail("test@test.pl");
     }
 
     @Test
     void deletePatientByEmail_PatientNotExists_ThrowsPatientNotFoundException() {
         // given
-        when(patientRepository.findByEmail("test@test.pl")).thenReturn(Optional.empty());
+        when(patientRepository.findByUserEmail("test@test.pl")).thenReturn(Optional.empty());
 
         // when
         PatientNotFoundException exception = assertThrows(PatientNotFoundException.class,
@@ -381,21 +372,20 @@ public class PatientServiceTest {
 
         // then
         assertEquals("Patient with email test@test.pl not found", exception.getMessage());
-        verify(patientRepository, never()).deleteByEmail(any());
+        verify(patientRepository, never()).deleteByUserEmail(any());
     }
 
     @Test
     void changePassword_PatientExists_PasswordChanged() {
         // given
-        Patient patient = new Patient(
-                "test@test.pl",
-                "pass123",
+        Patient patient = new Patient(null,
                 "333333",
                 "krzysztof",
                 "kowalski",
                 "900502502",
-                LocalDate.of(2005, 2, 15));
-        when(patientRepository.findByEmail("test@test.pl")).thenReturn(Optional.of(patient));
+                LocalDate.of(2005, 2, 15),
+                new User(null, "test@test.pl", "pass123"));
+        when(patientRepository.findByUserEmail("test@test.pl")).thenReturn(Optional.of(patient));
 
         // when
         patientService.changePassword("test@test.pl", new ChangePasswordDto("siemanko"));
@@ -403,22 +393,21 @@ public class PatientServiceTest {
         // then
         assertAll(
                 () -> verify(patientRepository).save(patient),
-                () -> assertEquals("siemanko", patient.getPassword())
+                () -> assertEquals("siemanko", patient.getUser().getPassword())
         );
     }
 
     @Test
     void changePassword_EmailWithUpperCaseAndSpaces_PasswordChanged() {
         // given
-        Patient patient = new Patient(
-                "test@test.pl",
-                "pass123",
+        Patient patient = new Patient(null,
                 "333333",
                 "krzysztof",
                 "kowalski",
                 "900502502",
-                LocalDate.of(2005, 2, 15));
-        when(patientRepository.findByEmail("test@test.pl")).thenReturn(Optional.of(patient));
+                LocalDate.of(2005, 2, 15),
+                new User(null, "test@test.pl", "pass123"));
+        when(patientRepository.findByUserEmail("test@test.pl")).thenReturn(Optional.of(patient));
 
         // when
         patientService.changePassword("  TEST@TEST.PL  ", new ChangePasswordDto("siemanko"));
@@ -426,14 +415,14 @@ public class PatientServiceTest {
         // then
         assertAll(
                 () -> verify(patientRepository).save(patient),
-                () -> assertEquals("siemanko", patient.getPassword())
+                () -> assertEquals("siemanko", patient.getUser().getPassword())
         );
     }
 
     @Test
     void changePassword_PatientNotExists_ThrowsPatientNotFoundException() {
         // given
-        when(patientRepository.findByEmail("test@test.pl")).thenReturn(Optional.empty());
+        when(patientRepository.findByUserEmail("test@test.pl")).thenReturn(Optional.empty());
 
         // when
         PatientNotFoundException exception = assertThrows(PatientNotFoundException.class,
@@ -447,15 +436,14 @@ public class PatientServiceTest {
     @Test
     void addPatient_PatientExists_ThrowsPatientAlreadyExistsException() {
         // given
-        Patient patient = new Patient(
-                "test@test.pl",
-                "pass123",
+        Patient patient = new Patient(null,
                 "333333",
                 "krzysztof",
                 "kowalski",
                 "900502502",
-                LocalDate.of(2005, 2, 15));
-        when(patientRepository.findByEmail("test@test.pl")).thenReturn(Optional.of(patient));
+                LocalDate.of(2005, 2, 15),
+                new User(null, "test@test.pl", "pass123"));
+        when(patientRepository.findByUserEmail("test@test.pl")).thenReturn(Optional.of(patient));
 
         // when
         PatientAlreadyExistsException exception = assertThrows(PatientAlreadyExistsException.class,
