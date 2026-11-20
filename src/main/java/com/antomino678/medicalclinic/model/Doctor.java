@@ -36,4 +36,14 @@ public class Doctor {
         this.speciality = speciality;
         this.user = user;
     }
+
+    public void update(Doctor newData) {
+        this.firstName = newData.getFirstName();
+        this.lastName = newData.getLastName();
+        this.speciality = newData.getSpeciality();
+    }
+
+    public void addFacility(Facility facility) {
+        facilities.add(facility);
+    }
 }

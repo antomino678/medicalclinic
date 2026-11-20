@@ -4,10 +4,12 @@ import com.antomino678.medicalclinic.dto.ChangePasswordDto;
 import com.antomino678.medicalclinic.dto.CreateUserDto;
 import com.antomino678.medicalclinic.dto.UserDto;
 import com.antomino678.medicalclinic.exception.UserAlreadyExistsException;
+import com.antomino678.medicalclinic.exception.UserHasDoctorException;
 import com.antomino678.medicalclinic.exception.UserHasPatientException;
 import com.antomino678.medicalclinic.exception.UserNotFoundException;
 import com.antomino678.medicalclinic.mapper.UserMapper;
 import com.antomino678.medicalclinic.model.User;
+import com.antomino678.medicalclinic.repository.DoctorRepository;
 import com.antomino678.medicalclinic.repository.PatientRepository;
 import com.antomino678.medicalclinic.repository.UserRepository;
 import com.antomino678.medicalclinic.util.EmailNormalizer;
@@ -21,6 +23,7 @@ import java.util.List;
 public class UserService {
     private final UserRepository userRepository;
     private final PatientRepository patientRepository;
+    private final DoctorRepository doctorRepository;
     private final UserMapper userMapper;
 
     public List<UserDto> findAllUsers() {
@@ -51,6 +54,9 @@ public class UserService {
         User user = userRepository.findUserByEmail(email).orElseThrow(() -> new UserNotFoundException(email));
         if (patientRepository.existsByUserId(user.getId())) {
             throw new UserHasPatientException(email);
+        }
+        if (doctorRepository.existsByUserId(user.getId())) {
+            throw new UserHasDoctorException(email);
         }
         userRepository.delete(user);
     }
