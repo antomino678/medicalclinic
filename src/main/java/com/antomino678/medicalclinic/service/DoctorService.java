@@ -10,9 +10,8 @@ import com.antomino678.medicalclinic.repository.DoctorRepository;
 import com.antomino678.medicalclinic.repository.FacilityRepository;
 import com.antomino678.medicalclinic.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -22,10 +21,9 @@ public class DoctorService {
     private final FacilityRepository facilityRepository;
     private final DoctorMapper doctorMapper;
 
-    public List<DoctorDto> getAllDoctors() {
-        return doctorRepository.findAll().stream()
-                .map(doctorMapper::toDto)
-                .toList();
+    public PageDto<DoctorDto> getAllDoctors(Pageable pageable) {
+        return PageDto.from(doctorRepository.findAll(pageable)
+                .map(doctorMapper::toDto));
     }
 
     public DoctorDto getDoctorById(Long id) {

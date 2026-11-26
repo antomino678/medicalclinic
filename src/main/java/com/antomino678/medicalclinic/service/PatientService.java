@@ -1,6 +1,7 @@
 package com.antomino678.medicalclinic.service;
 
 import com.antomino678.medicalclinic.dto.CreatePatientDto;
+import com.antomino678.medicalclinic.dto.PageDto;
 import com.antomino678.medicalclinic.dto.PatientDto;
 import com.antomino678.medicalclinic.dto.UpdatePatientDto;
 import com.antomino678.medicalclinic.exception.PatientAlreadyExistsException;
@@ -13,9 +14,8 @@ import com.antomino678.medicalclinic.repository.PatientRepository;
 import com.antomino678.medicalclinic.repository.UserRepository;
 import com.antomino678.medicalclinic.util.EmailNormalizer;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -24,10 +24,9 @@ public class PatientService {
     private final UserRepository userRepository;
     private final PatientMapper patientMapper;
 
-    public List<PatientDto> getAllPatients() {
-        return patientRepository.findAll().stream()
-                .map(patientMapper::toDto)
-                .toList();
+    public PageDto<PatientDto> getAllPatients(Pageable pageable) {
+        return PageDto.from(patientRepository.findAll(pageable)
+                .map(patientMapper::toDto));
     }
 
     public PatientDto getPatientByEmail(String rawEmail) {

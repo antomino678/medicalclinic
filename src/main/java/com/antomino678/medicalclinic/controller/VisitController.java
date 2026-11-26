@@ -2,13 +2,13 @@ package com.antomino678.medicalclinic.controller;
 
 import com.antomino678.medicalclinic.dto.BookVisitDto;
 import com.antomino678.medicalclinic.dto.CreateVisitDto;
+import com.antomino678.medicalclinic.dto.PageDto;
 import com.antomino678.medicalclinic.dto.VisitDto;
 import com.antomino678.medicalclinic.service.VisitService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/visits")
@@ -17,8 +17,8 @@ public class VisitController {
     private final VisitService visitService;
 
     @GetMapping
-    public List<VisitDto> getVisits() {
-        return visitService.getAllVisits();
+    public PageDto<VisitDto> getVisits(Pageable pageable) {
+        return visitService.getAllVisits(pageable);
     }
 
     @GetMapping("/{id}")
@@ -27,8 +27,8 @@ public class VisitController {
     }
 
     @GetMapping("/patient/{email}")
-    public List<VisitDto> getPatientVisits(@PathVariable String email) {
-        return visitService.getPatientVisits(email);
+    public PageDto<VisitDto> getPatientVisits(@PathVariable String email, Pageable pageable) {
+        return visitService.getPatientVisits(email, pageable);
     }
 
     @PostMapping

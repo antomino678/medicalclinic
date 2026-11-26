@@ -2,10 +2,12 @@ package com.antomino678.medicalclinic.controller;
 
 import com.antomino678.medicalclinic.dto.ChangePasswordDto;
 import com.antomino678.medicalclinic.dto.CreatePatientDto;
+import com.antomino678.medicalclinic.dto.PageDto;
 import com.antomino678.medicalclinic.dto.PatientDto;
 import com.antomino678.medicalclinic.dto.UpdatePatientDto;
 import com.antomino678.medicalclinic.service.PatientService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,8 +20,8 @@ public class PatientController {
     private final PatientService patientService;
 
     @GetMapping
-    public List<PatientDto> getPatients() {
-        return patientService.getAllPatients();
+    public PageDto<PatientDto> getPatients(Pageable pageable) {
+        return patientService.getAllPatients(pageable);
     }
 
     @GetMapping("/{email}")

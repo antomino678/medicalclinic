@@ -4,10 +4,9 @@ import com.antomino678.medicalclinic.dto.*;
 import com.antomino678.medicalclinic.model.Doctor;
 import com.antomino678.medicalclinic.service.DoctorService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/doctors")
@@ -16,8 +15,8 @@ public class DoctorController {
     private final DoctorService doctorService;
 
     @GetMapping
-    public List<DoctorDto> getDoctors() {
-        return doctorService.getAllDoctors();
+    public PageDto<DoctorDto> getDoctors(Pageable pageable) {
+        return doctorService.getAllDoctors(pageable);
     }
 
     @GetMapping("/{id}")

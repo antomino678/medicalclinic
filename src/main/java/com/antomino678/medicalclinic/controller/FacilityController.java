@@ -2,12 +2,12 @@ package com.antomino678.medicalclinic.controller;
 
 import com.antomino678.medicalclinic.dto.CreateFacilityDto;
 import com.antomino678.medicalclinic.dto.FacilityDto;
+import com.antomino678.medicalclinic.dto.PageDto;
 import com.antomino678.medicalclinic.service.FacilityService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/facilities")
@@ -16,8 +16,8 @@ public class FacilityController {
     private final FacilityService facilityService;
 
     @GetMapping
-    public List<FacilityDto> findAll() {
-        return facilityService.getAllFacilities();
+    public PageDto<FacilityDto> findAll(Pageable pageable) {
+        return facilityService.getAllFacilities(pageable);
     }
 
     @GetMapping("/{id}")

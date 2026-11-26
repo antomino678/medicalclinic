@@ -2,13 +2,13 @@ package com.antomino678.medicalclinic.controller;
 
 import com.antomino678.medicalclinic.dto.ChangePasswordDto;
 import com.antomino678.medicalclinic.dto.CreateUserDto;
+import com.antomino678.medicalclinic.dto.PageDto;
 import com.antomino678.medicalclinic.dto.UserDto;
 import com.antomino678.medicalclinic.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/users")
@@ -18,8 +18,8 @@ public class UserController {
     private final UserService userService;
 
     @GetMapping
-    public List<UserDto> getUsers() {
-        return userService.findAllUsers();
+    public PageDto<UserDto> getUsers(Pageable pageable) {
+        return userService.findAllUsers(pageable);
     }
 
     @GetMapping("/{email}")
