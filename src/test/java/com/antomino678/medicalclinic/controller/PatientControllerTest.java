@@ -1,15 +1,17 @@
 package com.antomino678.medicalclinic.controller;
 
-import com.antomino678.medicalclinic.dto.ChangePasswordDto;
 import com.antomino678.medicalclinic.dto.CreatePatientDto;
+import com.antomino678.medicalclinic.dto.PageDto;
 import com.antomino678.medicalclinic.dto.PatientDto;
 import com.antomino678.medicalclinic.dto.UpdatePatientDto;
 import com.antomino678.medicalclinic.exception.PatientAlreadyExistsException;
 import com.antomino678.medicalclinic.exception.PatientNotFoundException;
+import com.antomino678.medicalclinic.exception.UserNotFoundException;
 import com.antomino678.medicalclinic.service.PatientService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -20,6 +22,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 import static org.hamcrest.Matchers.hasSize;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -59,34 +62,41 @@ public class PatientControllerTest {
                         LocalDate.of(2001, 1, 1)
                 )
         );
-        when(patientService.getAllPatients()).thenReturn(patients);
+        when(patientService.getAllPatients(any(Pageable.class)))
+                .thenReturn(new PageDto<>(patients, 0, 2, 2, 1));
 
         // when and then
-        mockMvc.perform(get("/patients"))
+        mockMvc.perform(get("/patients").param("page", "0").param("size", "2"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].email").value("test@test.pl"))
-                .andExpect(jsonPath("$[0].idCardNo").value("123123"))
-                .andExpect(jsonPath("$[0].firstName").value("jan"))
-                .andExpect(jsonPath("$[0].lastName").value("kowalski"))
-                .andExpect(jsonPath("$[0].phoneNumber").value("500500500"))
-                .andExpect(jsonPath("$[0].birthday").value("2005-01-01"))
-                .andExpect(jsonPath("$[1].email").value("ziomek@test.pl"))
-                .andExpect(jsonPath("$[1].idCardNo").value("321123"))
-                .andExpect(jsonPath("$[1].firstName").value("emil"))
-                .andExpect(jsonPath("$[1].lastName").value("kowalski"))
-                .andExpect(jsonPath("$[1].phoneNumber").value("300500500"))
-                .andExpect(jsonPath("$[1].birthday").value("2001-01-01"));
+                .andExpect(jsonPath("$.page").value(0))
+                .andExpect(jsonPath("$.size").value(2))
+                .andExpect(jsonPath("$.totalElements").value(2))
+                .andExpect(jsonPath("$.totalPages").value(1))
+                .andExpect(jsonPath("$.content[0].email").value("test@test.pl"))
+                .andExpect(jsonPath("$.content[0].idCardNo").value("123123"))
+                .andExpect(jsonPath("$.content[0].firstName").value("jan"))
+                .andExpect(jsonPath("$.content[0].lastName").value("kowalski"))
+                .andExpect(jsonPath("$.content[0].phoneNumber").value("500500500"))
+                .andExpect(jsonPath("$.content[0].birthday").value("2005-01-01"))
+                .andExpect(jsonPath("$.content[1].email").value("ziomek@test.pl"))
+                .andExpect(jsonPath("$.content[1].idCardNo").value("321123"))
+                .andExpect(jsonPath("$.content[1].firstName").value("emil"))
+                .andExpect(jsonPath("$.content[1].lastName").value("kowalski"))
+                .andExpect(jsonPath("$.content[1].phoneNumber").value("300500500"))
+                .andExpect(jsonPath("$.content[1].birthday").value("2001-01-01"));
     }
 
     @Test
     void getPatients_NoPatients_EmptyListReturned() throws Exception {
         // given
-        when(patientService.getAllPatients()).thenReturn(List.of());
+        when(patientService.getAllPatients(any(Pageable.class)))
+                .thenReturn(new PageDto<>(List.of(), 0, 10, 0, 0));
 
         // when and then
         mockMvc.perform(get("/patients"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(0)));
+                .andExpect(jsonPath("$.content", hasSize(0)))
+                .andExpect(jsonPath("$.totalElements").value(0));
     }
 
     @Test
@@ -127,8 +137,7 @@ public class PatientControllerTest {
     void createPatient_PatientNotExists_PatientAdded() throws Exception {
         // given
         CreatePatientDto createPatientDto = new CreatePatientDto(
-                "test@test.pl",
-                "pass",
+                1L,
                 "ASD123",
                 "Jan",
                 "Kowalski",
@@ -162,21 +171,41 @@ public class PatientControllerTest {
     void createPatient_PatientExists_ThrowsPatientAlreadyExistsException() throws Exception {
         // given
         CreatePatientDto createPatientDto = new CreatePatientDto(
-                "test@test.pl",
-                "pass",
+                1L,
                 "ASD123",
                 "Jan",
                 "Kowalski",
                 "500100900",
                 LocalDate.of(2001, 1, 1)
         );
-        when(patientService.addPatient(createPatientDto)).thenThrow(new PatientAlreadyExistsException("test@test.pl"));
+        when(patientService.addPatient(createPatientDto)).thenThrow(new PatientAlreadyExistsException(1L));
 
         // when and then
         mockMvc.perform(post("/patients")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(createPatientDto)))
                 .andExpect(status().isConflict());
+    }
+
+    @Test
+    void createPatient_UserNotExists_ThrowsUserNotFoundException() throws Exception {
+        // given
+        CreatePatientDto createPatientDto = new CreatePatientDto(
+                1L,
+                "ASD123",
+                "Jan",
+                "Kowalski",
+                "500100900",
+                LocalDate.of(2001, 1, 1)
+        );
+        when(patientService.addPatient(createPatientDto)).thenThrow(new UserNotFoundException(1L));
+
+        // when and then
+        mockMvc.perform(post("/patients")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(createPatientDto)))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("User with id 1 not found"));
     }
 
     @Test
@@ -247,38 +276,6 @@ public class PatientControllerTest {
         mockMvc.perform(put("/patients/test@test.pl")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updatePatientDto)))
-                .andExpect(status().isNotFound());
-    }
-
-    @Test
-    void changePassword_PatientExists_PasswordChanged() throws Exception {
-        // given
-        ChangePasswordDto changePasswordDto = new ChangePasswordDto(
-                "test123"
-        );
-
-        // when and then
-        mockMvc.perform(patch("/patients/test@test.pl/password")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(changePasswordDto)))
-                .andExpect(status().isNoContent());
-
-        verify(patientService).changePassword("test@test.pl", changePasswordDto);
-    }
-
-    @Test
-    void changePassword_PatientNotExists_ThrowsPatientNotFoundException() throws Exception {
-        // given
-        ChangePasswordDto changePasswordDto = new ChangePasswordDto(
-                "test123"
-        );
-        doThrow(new PatientNotFoundException("test@test.pl"))
-                .when(patientService).changePassword("test@test.pl", changePasswordDto);
-
-        // when and then
-        mockMvc.perform(patch("/patients/test@test.pl/password")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(changePasswordDto)))
                 .andExpect(status().isNotFound());
     }
 }

@@ -1,69 +1,65 @@
 package com.antomino678.medicalclinic.service;
 
-import com.antomino678.medicalclinic.dto.ChangePasswordDto;
 import com.antomino678.medicalclinic.dto.CreatePatientDto;
+import com.antomino678.medicalclinic.dto.PageDto;
 import com.antomino678.medicalclinic.dto.PatientDto;
 import com.antomino678.medicalclinic.dto.UpdatePatientDto;
 import com.antomino678.medicalclinic.exception.PatientAlreadyExistsException;
 import com.antomino678.medicalclinic.exception.PatientNotFoundException;
+import com.antomino678.medicalclinic.exception.UserNotFoundException;
 import com.antomino678.medicalclinic.mapper.PatientMapper;
 import com.antomino678.medicalclinic.model.Patient;
+import com.antomino678.medicalclinic.model.User;
 import com.antomino678.medicalclinic.repository.PatientRepository;
+import com.antomino678.medicalclinic.repository.UserRepository;
 import com.antomino678.medicalclinic.util.EmailNormalizer;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class PatientService {
     private final PatientRepository patientRepository;
+    private final UserRepository userRepository;
     private final PatientMapper patientMapper;
 
-    public List<PatientDto> getAllPatients() {
-        return patientRepository.findAll().stream()
-                .map(patientMapper::toDto)
-                .toList();
+    public PageDto<PatientDto> getAllPatients(Pageable pageable) {
+        return PageDto.from(patientRepository.findAll(pageable)
+                .map(patientMapper::toDto));
     }
 
     public PatientDto getPatientByEmail(String rawEmail) {
         String email = EmailNormalizer.normalize(rawEmail);
-        return patientRepository.findByEmail(email)
+        return patientRepository.findByUserEmail(email)
                 .map(patientMapper::toDto)
                 .orElseThrow(() -> new PatientNotFoundException(email));
     }
 
     public PatientDto addPatient(CreatePatientDto createPatientDto) {
-        String email = EmailNormalizer.normalize(createPatientDto.email());
-        if (patientRepository.findByEmail(email).isPresent()) {
-            throw new PatientAlreadyExistsException(email);
+        User user = userRepository
+                .findById(createPatientDto.userId())
+                .orElseThrow(() -> new UserNotFoundException(createPatientDto.userId()));
+        if (patientRepository.existsByUserId(createPatientDto.userId())) {
+            throw new PatientAlreadyExistsException(createPatientDto.userId());
         }
-        Patient patient = patientMapper.toPatient(email, createPatientDto);
+        Patient patient = patientMapper.toPatient(user, createPatientDto);
         return patientMapper.toDto(patientRepository.save(patient));
     }
 
     public void deletePatientByEmail(String rawEmail) {
         String email = EmailNormalizer.normalize(rawEmail);
-        if (patientRepository.findByEmail(email).isEmpty()) {
+        if (patientRepository.findByUserEmail(email).isEmpty()) {
             throw new PatientNotFoundException(email);
         }
-        patientRepository.deleteByEmail(email);
+        patientRepository.deleteByUserEmail(email);
     }
 
     public PatientDto updatePatientByEmail(String rawEmail, UpdatePatientDto updatePatientDto) {
         String email = EmailNormalizer.normalize(rawEmail);
-        Patient patient = patientRepository.findByEmail(email)
+        Patient patient = patientRepository.findByUserEmail(email)
                 .orElseThrow(() -> new PatientNotFoundException(email));
         patient.update(patientMapper.toPatient(updatePatientDto));
         return patientMapper.toDto(patientRepository.save(patient));
-    }
-
-    public void changePassword(String rawEmail, ChangePasswordDto changePasswordDto) {
-        String email = EmailNormalizer.normalize(rawEmail);
-        Patient patient = patientRepository.findByEmail(email)
-                .orElseThrow(() -> new PatientNotFoundException(email));
-        patient.changePassword(changePasswordDto.newPassword());
-        patientRepository.save(patient);
     }
 }

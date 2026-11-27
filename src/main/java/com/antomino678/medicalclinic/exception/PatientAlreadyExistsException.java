@@ -6,4 +6,8 @@ public class PatientAlreadyExistsException extends MedicalClinicException {
     public PatientAlreadyExistsException(String email) {
         super("Patient with email " + email + " already exists", HttpStatus.CONFLICT);
     }
+
+    public PatientAlreadyExistsException(Long userId) {
+        super("Patient for user with id " + userId + " already exists", HttpStatus.CONFLICT);
+    }
 }
